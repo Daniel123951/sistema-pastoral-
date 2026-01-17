@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cultura Fe Venezuela - Sistema Pastoral</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script><!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Source+Sans+Pro:wght@300;400;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .font-body { font-family: 'Source Sans Pro', sans-serif; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+    
+    .sidebar-item {
+      transition: all 0.2s ease;
+    }
+    
+    .sidebar-item:hover {
+      transform: translateX(4px);
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .glass-effect {
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.95);
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      ring: 2px;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c4a574;
+      border-radius: 3px;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full font-body">
+  <div id="app" class="h-full flex overflow-hidden" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);"><!-- Sidebar -->
+   <aside id="sidebar" class="w-72 flex-shrink-0 flex flex-col" style="background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 100%);"><!-- Logo y Nombre -->
+    <div class="p-6 border-b border-amber-900/30">
+     <div class="flex items-center gap-3 mb-3">
+      <div class="w-20 h-20 rounded-xl flex items-center justify-center bg-white p-3 shadow-lg"><img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+      </div>
+      <div>
+       <h1 id="church-name-display" class="font-display text-lg font-bold text-amber-100">Cultura Fe Venezuela</h1>
+       <p class="text-xs text-amber-200/60">Sistema Pastoral</p>
+      </div>
+     </div>
+     <p id="welcome-display" class="text-sm text-amber-200/80 italic">"Bienvenido al Sistema Pastoral"</p>
+    </div><!-- Navegación -->
+    <nav class="flex-1 p-4 overflow-y-auto">
+     <ul class="space-y-2">
+      <li><button onclick="showSection('dashboard')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="dashboard"> <span class="text-xl">🏠</span> <span>Inicio</span> </button></li>
+      <li><button onclick="showSection('sermons')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="sermons"> <span class="text-xl">📖</span> <span>Sermones y Notas</span> </button></li>
+      <li><button onclick="showSection('calendar')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="calendar"> <span class="text-xl">📅</span> <span>Agenda</span> </button></li>
+      <li><button onclick="showSection('members')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="members"> <span class="text-xl">👥</span> <span>Miembros</span> </button></li>
+      <li><button onclick="showSection('spiritual')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="spiritual"> <span class="text-xl">✨</span> <span>Herramientas Espirituales</span> </button></li>
+      <li><button onclick="showSection('documents')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="documents"> <span class="text-xl">📄</span> <span>Documentos</span> </button></li>
+      <li><button onclick="showSection('settings')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-amber-100 hover:bg-amber-900/30" data-section="settings"> <span class="text-xl">⚙️</span> <span>Configuración Firebase</span> </button></li>
+     </ul>
+    </nav><!-- Versículo del día -->
+    <div class="p-4 m-4 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.2) 0%, rgba(139,105,20,0.2) 100%); border: 1px solid rgba(196,165,116,0.3);">
+     <p class="text-xs text-amber-300 mb-1">📜 Versículo del día</p>
+     <p id="daily-verse-text" class="text-sm text-amber-100 italic">"Porque yo sé los pensamientos que tengo acerca de vosotros..."</p>
+     <p id="daily-verse-reference" class="text-xs text-amber-200/60 mt-1">— Jeremías 29:11</p>
+    </div>
+   </aside><!-- Contenido Principal -->
+   <main class="flex-1 overflow-hidden flex flex-col"><!-- Header -->
+    <header class="glass-effect px-8 py-4 border-b border-amber-200/20 flex items-center justify-between">
+     <div>
+      <h2 id="section-title" class="font-display text-2xl font-bold" style="color: #1a1a2e;">Panel de Control</h2>
+      <p id="section-subtitle" class="text-sm text-gray-600">Resumen general de actividades</p>
+     </div>
+     <div class="flex items-center gap-4">
+      <div id="firebase-status" class="flex items-center gap-2 px-3 py-1 rounded-full text-xs"><span class="w-2 h-2 rounded-full bg-gray-400"></span> <span>Firebase: No conectado</span>
+      </div>
+      <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);">
+       P
+      </div>
+     </div>
+    </header><!-- Área de contenido -->
+    <div class="flex-1 overflow-y-auto p-8"><!-- Dashboard -->
+     <section id="section-dashboard" class="animate-fade-in">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+       <div class="card-hover bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-4"><span class="text-3xl">📖</span> <span id="stat-sermons" class="text-3xl font-bold" style="color: #c4a574;">0</span>
+        </div>
+        <p class="text-gray-600 font-medium">Sermones Guardados</p>
+       </div>
+       <div class="card-hover bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-4"><span class="text-3xl">📅</span> <span id="stat-events" class="text-3xl font-bold" style="color: #c4a574;">0</span>
+        </div>
+        <p class="text-gray-600 font-medium">Eventos Próximos</p>
+       </div>
+       <div class="card-hover bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-4"><span class="text-3xl">👥</span> <span id="stat-members" class="text-3xl font-bold" style="color: #c4a574;">0</span>
+        </div>
+        <p class="text-gray-600 font-medium">Miembros Registrados</p>
+       </div>
+       <div class="card-hover bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-4"><span class="text-3xl">🎂</span> <span id="stat-birthdays" class="text-3xl font-bold" style="color: #c4a574;">0</span>
+        </div>
+        <p class="text-gray-600 font-medium">Próximos 7 Días</p>
+       </div>
+      </div><!-- Próximos eventos y cumpleaños -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+       <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">📅 Próximos Eventos</h3>
+        <div id="upcoming-events" class="space-y-3">
+         <p class="text-gray-500 text-center py-4">No hay eventos próximos</p>
+        </div>
+       </div>
+       <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">🎂 Cumpleaños Próximos</h3>
+        <div id="upcoming-birthdays" class="space-y-3">
+         <p class="text-gray-500 text-center py-4">No hay cumpleaños próximos</p>
+        </div>
+       </div>
+      </div>
+     </section><!-- Sermones y Notas -->
+     <section id="section-sermons" class="hidden animate-fade-in">
+      <div class="flex justify-between items-center mb-6">
+       <div class="flex gap-2"><button onclick="showSermonForm()" class="px-6 py-3 rounded-xl text-white font-medium transition-all hover:shadow-lg" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> ➕ Nuevo Sermón </button>
+       </div><input type="text" placeholder="Buscar sermones..." class="px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500 w-64" oninput="filterSermons(this.value)">
+      </div><!-- Formulario de sermón -->
+      <div id="sermon-form" class="hidden bg-white rounded-2xl p-6 shadow-lg mb-6">
+       <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">Nuevo Sermón / Nota Bíblica</h3>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="sermon-title">Título</label> <input type="text" id="sermon-title" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Título del sermón">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="sermon-verse">Versículo Base</label> <input type="text" id="sermon-verse" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Ej: Juan 3:16">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="sermon-topic">Tema</label> <select id="sermon-topic" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500"> <option value="">Seleccionar tema</option> <option value="Fe">Fe</option> <option value="Amor">Amor</option> <option value="Esperanza">Esperanza</option> <option value="Salvación">Salvación</option> <option value="Familia">Familia</option> <option value="Oración">Oración</option> <option value="Sanidad">Sanidad</option> <option value="Prosperidad">Prosperidad</option> <option value="Otro">Otro</option> </select>
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="sermon-date">Fecha</label> <input type="date" id="sermon-date" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500">
+        </div>
+       </div>
+       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1" for="sermon-content">Contenido / Bosquejo</label> <textarea id="sermon-content" rows="6" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Escribe tu bosquejo, reflexiones y puntos principales..."></textarea>
+       </div>
+       <div class="flex gap-3"><button onclick="saveSermon()" class="px-6 py-2 rounded-xl text-white font-medium" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 💾 Guardar </button> <button onclick="hideSermonForm()" class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50"> Cancelar </button>
+       </div>
+      </div><!-- Lista de sermones -->
+      <div id="sermons-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <p class="text-gray-500 text-center py-8 col-span-2">No hay sermones guardados</p>
+      </div>
+     </section><!-- Agenda -->
+     <section id="section-calendar" class="hidden animate-fade-in">
+      <div class="flex justify-between items-center mb-6"><button onclick="showEventForm()" class="px-6 py-3 rounded-xl text-white font-medium transition-all hover:shadow-lg" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> ➕ Nuevo Evento </button> <select id="event-filter" onchange="filterEvents(this.value)" class="px-4 py-2 rounded-xl border border-amber-200"> <option value="">Todos los eventos</option> <option value="Consejería">Consejerías</option> <option value="Reunión">Reuniones</option> <option value="Visita">Visitas</option> <option value="Culto">Cultos</option> <option value="Otro">Otros</option> </select>
+      </div><!-- Formulario de evento -->
+      <div id="event-form" class="hidden bg-white rounded-2xl p-6 shadow-lg mb-6">
+       <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">Nuevo Evento</h3>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="event-title">Título del Evento</label> <input type="text" id="event-title" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Nombre del evento">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="event-category">Categoría</label> <select id="event-category" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500"> <option value="Consejería">Consejería</option> <option value="Reunión">Reunión de Líderes</option> <option value="Visita">Visita Pastoral</option> <option value="Culto">Culto / Servicio</option> <option value="Otro">Otro</option> </select>
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="event-date">Fecha</label> <input type="date" id="event-date" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="event-time">Hora</label> <input type="time" id="event-time" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500">
+        </div>
+       </div>
+       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1" for="event-notes">Notas</label> <textarea id="event-notes" rows="3" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Detalles adicionales..."></textarea>
+       </div>
+       <div class="flex gap-3"><button onclick="saveEvent()" class="px-6 py-2 rounded-xl text-white font-medium" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 💾 Guardar </button> <button onclick="hideEventForm()" class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50"> Cancelar </button>
+       </div>
+      </div><!-- Lista de eventos -->
+      <div id="events-list" class="space-y-4">
+       <p class="text-gray-500 text-center py-8">No hay eventos programados</p>
+      </div>
+     </section><!-- Miembros -->
+     <section id="section-members" class="hidden animate-fade-in">
+      <div class="flex justify-between items-center mb-6"><button onclick="showMemberForm()" class="px-6 py-3 rounded-xl text-white font-medium transition-all hover:shadow-lg" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> ➕ Nuevo Miembro </button> <input type="text" placeholder="Buscar miembro..." class="px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500 w-64" oninput="filterMembers(this.value)">
+      </div><!-- Formulario de miembro -->
+      <div id="member-form" class="hidden bg-white rounded-2xl p-6 shadow-lg mb-6">
+       <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">Nuevo Miembro</h3>
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="member-name">Nombre Completo</label> <input type="text" id="member-name" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Nombre y apellido">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="member-phone">Teléfono</label> <input type="tel" id="member-phone" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="+58 412 123 4567">
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1" for="member-birthday">Fecha de Cumpleaños</label> <input type="date" id="member-birthday" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500">
+        </div>
+       </div>
+       <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1" for="member-notes">Notas</label> <textarea id="member-notes" rows="2" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Ministerio, familia, observaciones..."></textarea>
+       </div>
+       <div class="flex gap-3"><button onclick="saveMember()" class="px-6 py-2 rounded-xl text-white font-medium" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 💾 Guardar </button> <button onclick="hideMemberForm()" class="px-6 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50"> Cancelar </button>
+       </div>
+      </div><!-- Lista de miembros -->
+      <div id="members-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+       <p class="text-gray-500 text-center py-8 col-span-3">No hay miembros registrados</p>
+      </div>
+     </section><!-- Herramientas Espirituales -->
+     <section id="section-spiritual" class="hidden animate-fade-in">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><!-- Versículos Motivacionales -->
+       <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">📜 Versículos Motivacionales</h3>
+        <div id="verses-container" class="space-y-4">
+         <div class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.1) 0%, rgba(139,105,20,0.1) 100%); border-left: 4px solid #c4a574;">
+          <p class="text-gray-700 italic mb-2">"Porque yo sé los pensamientos que tengo acerca de vosotros, dice Jehová, pensamientos de paz, y no de mal, para daros el fin que esperáis."</p>
+          <p class="text-sm font-medium" style="color: #8b6914;">— Jeremías 29:11</p>
+         </div>
+         <div class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.1) 0%, rgba(139,105,20,0.1) 100%); border-left: 4px solid #c4a574;">
+          <p class="text-gray-700 italic mb-2">"Todo lo puedo en Cristo que me fortalece."</p>
+          <p class="text-sm font-medium" style="color: #8b6914;">— Filipenses 4:13</p>
+         </div>
+         <div class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.1) 0%, rgba(139,105,20,0.1) 100%); border-left: 4px solid #c4a574;">
+          <p class="text-gray-700 italic mb-2">"Confía en Jehová con todo tu corazón, y no te apoyes en tu propia prudencia."</p>
+          <p class="text-sm font-medium" style="color: #8b6914;">— Proverbios 3:5</p>
+         </div>
+         <div class="p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.1) 0%, rgba(139,105,20,0.1) 100%); border-left: 4px solid #c4a574;">
+          <p class="text-gray-700 italic mb-2">"Esfuérzate y sé valiente; no temas ni desmayes, porque Jehová tu Dios estará contigo."</p>
+          <p class="text-sm font-medium" style="color: #8b6914;">— Josué 1:9</p>
+         </div>
+        </div>
+       </div><!-- Espacio de Oración -->
+       <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 class="font-display text-xl font-bold mb-4" style="color: #1a1a2e;">🙏 Mis Oraciones y Testimonios</h3>
+        <div class="mb-4"><label for="prayer-content" class="block text-sm font-medium text-gray-700 mb-1">Tu oración o testimonio</label> <textarea id="prayer-content" rows="4" class="w-full px-4 py-3 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="Escribe tu oración o testimonio..."></textarea>
+        </div><button onclick="savePrayer()" class="w-full px-6 py-3 rounded-xl text-white font-medium mb-4" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 💾 Guardar Oración </button>
+        <div id="prayers-list" class="space-y-3 max-h-64 overflow-y-auto">
+         <p class="text-gray-500 text-center py-4">No hay oraciones guardadas</p>
+        </div>
+       </div>
+      </div>
+     </section><!-- Documentos -->
+     <section id="section-documents" class="hidden animate-fade-in">
+      <h3 class="font-display text-xl font-bold mb-6" style="color: #1a1a2e;">📄 Plantillas de Documentos</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+       <div onclick="showDocumentTemplate('baptism')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         💧
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Certificado de Bautizo</h4>
+        <p class="text-sm text-gray-600">Plantilla oficial para certificados de bautismo</p>
+       </div>
+       <div onclick="showDocumentTemplate('membership')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         📋
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Carta de Membresía</h4>
+        <p class="text-sm text-gray-600">Certificado de pertenencia a la iglesia</p>
+       </div>
+       <div onclick="showDocumentTemplate('invitation')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         ✉️
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Invitaciones</h4>
+        <p class="text-sm text-gray-600">Plantillas para eventos especiales</p>
+       </div>
+       <div onclick="showDocumentTemplate('recommendation')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         💌
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Carta de Recomendación</h4>
+        <p class="text-sm text-gray-600">Para traslados a otras congregaciones</p>
+       </div>
+       <div onclick="showDocumentTemplate('wedding')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         💒
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Acta de Matrimonio</h4>
+        <p class="text-sm text-gray-600">Documento para ceremonias matrimoniales</p>
+       </div>
+       <div onclick="showDocumentTemplate('dedication')" class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+        <div class="text-4xl mb-4">
+         👶
+        </div>
+        <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">Presentación de Niños</h4>
+        <p class="text-sm text-gray-600">Certificado de dedicación infantil</p>
+       </div>
+      </div><!-- Vista previa de documento -->
+      <div id="document-preview" class="hidden mt-8 bg-white rounded-2xl p-8 shadow-lg">
+       <div class="flex justify-between items-start mb-6">
+        <h3 id="doc-title" class="font-display text-2xl font-bold" style="color: #1a1a2e;">Título del Documento</h3>
+        <div class="flex gap-2"><button onclick="printDocument()" class="px-4 py-2 rounded-xl text-white font-medium flex items-center gap-2" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 🖨️ Imprimir </button> <button onclick="hideDocumentPreview()" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+        </div>
+       </div>
+       <div id="doc-content" class="prose max-w-none"><!-- Contenido del documento -->
+       </div>
+      </div>
+     </section><!-- Configuración Firebase -->
+     <section id="section-settings" class="hidden animate-fade-in">
+      <div class="max-w-2xl mx-auto">
+       <div class="bg-white rounded-2xl p-8 shadow-lg">
+        <h3 class="font-display text-2xl font-bold mb-2" style="color: #1a1a2e;">⚙️ Configuración de Firebase</h3>
+        <p class="text-gray-600 mb-6">Conecta tu base de datos Firebase para guardar toda la información</p>
+        <div class="space-y-4">
+         <div><label for="firebase-api-key" class="block text-sm font-medium text-gray-700 mb-1">API Key</label> <input type="text" id="firebase-api-key" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="AIzaSy...">
+         </div>
+         <div><label for="firebase-auth-domain" class="block text-sm font-medium text-gray-700 mb-1">Auth Domain</label> <input type="text" id="firebase-auth-domain" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="tu-proyecto.firebaseapp.com">
+         </div>
+         <div><label for="firebase-database-url" class="block text-sm font-medium text-gray-700 mb-1">Database URL</label> <input type="text" id="firebase-database-url" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="https://tu-proyecto-default-rtdb.firebaseio.com">
+         </div>
+         <div><label for="firebase-project-id" class="block text-sm font-medium text-gray-700 mb-1">Project ID</label> <input type="text" id="firebase-project-id" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="tu-proyecto">
+         </div>
+         <div><label for="firebase-storage-bucket" class="block text-sm font-medium text-gray-700 mb-1">Storage Bucket</label> <input type="text" id="firebase-storage-bucket" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="tu-proyecto.appspot.com">
+         </div>
+         <div><label for="firebase-messaging-sender" class="block text-sm font-medium text-gray-700 mb-1">Messaging Sender ID</label> <input type="text" id="firebase-messaging-sender" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="123456789">
+         </div>
+         <div><label for="firebase-app-id" class="block text-sm font-medium text-gray-700 mb-1">App ID</label> <input type="text" id="firebase-app-id" class="w-full px-4 py-2 rounded-xl border border-amber-200 focus:border-amber-500" placeholder="1:123456789:web:abc123">
+         </div>
+        </div><button onclick="saveFirebaseConfig()" class="w-full mt-6 px-6 py-3 rounded-xl text-white font-medium" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"> 💾 Guardar y Conectar </button>
+        <div class="mt-6 p-4 bg-amber-50 rounded-xl">
+         <p class="text-sm text-amber-900 font-bold mb-2">📌 ¿Cómo obtener estos datos?</p>
+         <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+          <li>Ve a <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" class="text-amber-700 underline">Firebase Console</a></li>
+          <li>Selecciona tu proyecto (o crea uno nuevo)</li>
+          <li>Ve a Configuración del Proyecto (⚙️)</li>
+          <li>En "Tus apps", busca la sección "SDK setup and configuration"</li>
+          <li>Copia los valores de firebaseConfig</li>
+          <li>En "Realtime Database", crea una base de datos con reglas de prueba</li>
+         </ol>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div>
+   </main><!-- Modal de confirmación -->
+   <div id="confirm-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+     <h3 class="font-display text-xl font-bold mb-2" style="color: #1a1a2e;">Confirmar Eliminación</h3>
+     <p id="confirm-message" class="text-gray-600 mb-6">¿Estás seguro de que deseas eliminar este elemento?</p>
+     <div class="flex gap-3 justify-end"><button onclick="cancelDelete()" class="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-50"> Cancelar </button> <button onclick="confirmDelete()" class="px-4 py-2 rounded-xl text-white font-medium bg-red-500 hover:bg-red-600"> Eliminar </button>
+     </div>
+    </div>
+   </div><!-- Toast de notificación -->
+   <div id="toast" class="hidden fixed bottom-6 right-6 px-6 py-3 rounded-xl text-white shadow-lg z-50 animate-fade-in" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);"><span id="toast-message">Guardado exitosamente</span>
+   </div>
+  </div>
+  <script>
+    // Firebase y estado de la aplicación
+    let db = null;
+    let isFirebaseConnected = false;
+    let allData = [];
+    let currentSection = 'dashboard';
+    let editingId = null;
+    let deleteCallback = null;
+    
+    // Configuración por defecto
+    const defaultConfig = {
+      church_name: 'Cultura Fe Venezuela',
+      welcome_message: 'Bienvenido al Sistema Pastoral',
+      firebase_url: ''
+    };
+    
+    let config = { ...defaultConfig };
+    
+    // Inicializar Firebase con configuración guardada
+    function initFirebase() {
+      const savedConfig = localStorage.getItem('firebaseConfig');
+      if (savedConfig) {
+        try {
+          const firebaseConfig = JSON.parse(savedConfig);
+          
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          
+          db = firebase.database();
+          isFirebaseConnected = true;
+          updateFirebaseStatus(true);
+          
+          // Escuchar cambios en tiempo real
+          listenToDataChanges();
+          
+          showToast('✅ Conectado a Firebase');
+        } catch (error) {
+          console.error('Error al conectar Firebase:', error);
+          updateFirebaseStatus(false);
+          showToast('❌ Error al conectar con Firebase');
+        }
+      } else {
+        updateFirebaseStatus(false);
+      }
+    }
+    
+    function updateFirebaseStatus(connected) {
+      const statusEl = document.getElementById('firebase-status');
+      if (connected) {
+        statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500"></span><span>Firebase: Conectado</span>';
+        statusEl.className = 'flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-green-100 text-green-700';
+      } else {
+        statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400"></span><span>Firebase: No conectado</span>';
+        statusEl.className = 'flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600';
+      }
+    }
+    
+    function listenToDataChanges() {
+      if (!db) return;
+      
+      const dataRef = db.ref('culturaFe');
+      dataRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          allData = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+          }));
+        } else {
+          allData = [];
+        }
+        updateDashboard();
+        renderCurrentSection();
+      });
+    }
+    
+    function saveFirebaseConfig() {
+      const firebaseConfig = {
+        apiKey: document.getElementById('firebase-api-key').value.trim(),
+        authDomain: document.getElementById('firebase-auth-domain').value.trim(),
+        databaseURL: document.getElementById('firebase-database-url').value.trim(),
+        projectId: document.getElementById('firebase-project-id').value.trim(),
+        storageBucket: document.getElementById('firebase-storage-bucket').value.trim(),
+        messagingSenderId: document.getElementById('firebase-messaging-sender').value.trim(),
+        appId: document.getElementById('firebase-app-id').value.trim()
+      };
+      
+      if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) {
+        showToast('❌ Completa al menos API Key y Database URL');
+        return;
+      }
+      
+      try {
+        localStorage.setItem('firebaseConfig', JSON.stringify(firebaseConfig));
+        
+        // Reinicializar Firebase
+        if (firebase.apps.length) {
+          firebase.app().delete().then(() => {
+            location.reload();
+          });
+        } else {
+          location.reload();
+        }
+      } catch (error) {
+        console.error('Error guardando configuración:', error);
+        showToast('❌ Error al guardar configuración');
+      }
+    }
+    
+    // Funciones de renderizado
+    function updateDashboard() {
+      const sermons = allData.filter(d => d.type === 'sermon');
+      const events = allData.filter(d => d.type === 'event');
+      const members = allData.filter(d => d.type === 'member');
+      
+      document.getElementById('stat-sermons').textContent = sermons.length;
+      document.getElementById('stat-events').textContent = events.length;
+      document.getElementById('stat-members').textContent = members.length;
+      
+      // Cumpleaños próximos
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const sevenDaysLater = new Date(today);
+      sevenDaysLater.setDate(today.getDate() + 7);
+      
+      const birthdaysNextWeek = members.filter(m => {
+        if (!m.birthday) return false;
+        const parts = m.birthday.split('-');
+        if (parts.length !== 3) return false;
+        
+        const thisYear = new Date(today.getFullYear(), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        thisYear.setHours(0, 0, 0, 0);
+        
+        if (thisYear < today) {
+          thisYear.setFullYear(today.getFullYear() + 1);
+        }
+        
+        return thisYear >= today && thisYear <= sevenDaysLater;
+      });
+      
+      document.getElementById('stat-birthdays').textContent = birthdaysNextWeek.length;
+      
+      // Próximos eventos
+      const upcomingEvents = events
+        .filter(e => new Date(e.date) >= new Date())
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 3);
+      
+      const eventsContainer = document.getElementById('upcoming-events');
+      if (upcomingEvents.length === 0) {
+        eventsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No hay eventos próximos</p>';
+      } else {
+        eventsContainer.innerHTML = upcomingEvents.map(e => `
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-amber-50">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.3) 0%, rgba(139,105,20,0.3) 100%);">
+              ${getCategoryEmoji(e.category)}
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-800">${e.title || 'Sin título'}</p>
+              <p class="text-sm text-gray-500">${formatDate(e.date)} ${e.time || ''}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      // Próximos cumpleaños
+      const upcomingBirthdays = members
+        .filter(m => m.birthday)
+        .map(m => {
+          const parts = m.birthday.split('-');
+          if (parts.length !== 3) return null;
+          
+          const thisYear = new Date(today.getFullYear(), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          thisYear.setHours(0, 0, 0, 0);
+          
+          if (thisYear < today) {
+            thisYear.setFullYear(today.getFullYear() + 1);
+          }
+          
+          const daysUntil = Math.ceil((thisYear - today) / (1000 * 60 * 60 * 24));
+          
+          return { ...m, nextBirthday: thisYear, daysUntil };
+        })
+        .filter(m => m && m.daysUntil >= 0 && m.daysUntil <= 7)
+        .sort((a, b) => a.nextBirthday - b.nextBirthday)
+        .slice(0, 5);
+      
+      const birthdaysContainer = document.getElementById('upcoming-birthdays');
+      if (upcomingBirthdays.length === 0) {
+        birthdaysContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No hay cumpleaños próximos</p>';
+      } else {
+        birthdaysContainer.innerHTML = upcomingBirthdays.map(m => {
+          const dayText = m.daysUntil === 0 ? '¡Hoy!' : 
+                         m.daysUntil === 1 ? 'Mañana' : 
+                         `En ${m.daysUntil} días`;
+          return `
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-amber-50">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);">
+                ${(m.name || 'M')[0].toUpperCase()}
+              </div>
+              <div class="flex-1">
+                <p class="font-medium text-gray-800">${m.name || 'Sin nombre'}</p>
+                <p class="text-sm text-gray-500">🎂 ${formatDateOnly(m.birthday)} - ${dayText}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+    
+    function renderCurrentSection() {
+      switch(currentSection) {
+        case 'sermons':
+          renderSermons();
+          break;
+        case 'calendar':
+          renderEvents();
+          break;
+        case 'members':
+          renderMembers();
+          break;
+        case 'spiritual':
+          renderPrayers();
+          break;
+      }
+    }
+    
+    function renderSermons(filter = '') {
+      const sermons = allData.filter(d => d.type === 'sermon');
+      const filtered = filter ? sermons.filter(s => 
+        (s.title && s.title.toLowerCase().includes(filter.toLowerCase())) ||
+        (s.verse && s.verse.toLowerCase().includes(filter.toLowerCase())) ||
+        (s.topic && s.topic.toLowerCase().includes(filter.toLowerCase()))
+      ) : sermons;
+      
+      const container = document.getElementById('sermons-list');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-2">No hay sermones guardados</p>';
+        return;
+      }
+      
+      container.innerHTML = filtered.map(s => `
+        <div class="card-hover bg-white rounded-2xl p-5 shadow-lg">
+          <div class="flex justify-between items-start mb-3">
+            <span class="px-3 py-1 rounded-full text-xs font-medium" style="background: rgba(196,165,116,0.2); color: #8b6914;">${s.topic || 'General'}</span>
+            <div class="flex gap-1">
+              <button onclick="editSermon('${s.id}')" class="p-2 hover:bg-amber-50 rounded-lg text-amber-600">✏️</button>
+              <button onclick="requestDelete('${s.id}', 'sermon')" class="p-2 hover:bg-red-50 rounded-lg text-red-500">🗑️</button>
+            </div>
+          </div>
+          <h4 class="font-display text-lg font-bold mb-2" style="color: #1a1a2e;">${s.title || 'Sin título'}</h4>
+          <p class="text-sm text-amber-700 mb-2">📖 ${s.verse || 'Sin versículo'}</p>
+          <p class="text-sm text-gray-600 line-clamp-3 mb-3">${s.content || ''}</p>
+          <p class="text-xs text-gray-400">📅 ${formatDate(s.date)}</p>
+        </div>
+      `).join('');
+    }
+    
+    function renderEvents(filter = '') {
+      const events = allData.filter(d => d.type === 'event');
+      const filtered = filter ? events.filter(e => e.category === filter) : events;
+      const sorted = filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      const container = document.getElementById('events-list');
+      if (sorted.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay eventos programados</p>';
+        return;
+      }
+      
+      container.innerHTML = sorted.map(e => {
+        const eventDate = new Date(e.date);
+        const isPast = eventDate < new Date();
+        return `
+          <div class="card-hover bg-white rounded-2xl p-5 shadow-lg flex gap-4 ${isPast ? 'opacity-60' : ''}">
+            <div class="w-16 h-16 rounded-xl flex flex-col items-center justify-center text-white" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);">
+              <span class="text-2xl font-bold">${eventDate.getDate()}</span>
+              <span class="text-xs">${eventDate.toLocaleString('es', { month: 'short' }).toUpperCase()}</span>
+            </div>
+            <div class="flex-1">
+              <div class="flex justify-between items-start">
+                <div>
+                  <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">${e.category || 'Evento'}</span>
+                  <h4 class="font-display text-lg font-bold mt-1" style="color: #1a1a2e;">${e.title || 'Sin título'}</h4>
+                </div>
+                <div class="flex gap-1">
+                  <button onclick="editEvent('${e.id}')" class="p-2 hover:bg-amber-50 rounded-lg text-amber-600">✏️</button>
+                  <button onclick="requestDelete('${e.id}', 'event')" class="p-2 hover:bg-red-50 rounded-lg text-red-500">🗑️</button>
+                </div>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">🕐 ${e.time || 'Sin hora'}</p>
+              ${e.notes ? `<p class="text-sm text-gray-600 mt-2">${e.notes}</p>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function renderMembers(filter = '') {
+      const members = allData.filter(d => d.type === 'member');
+      const filtered = filter ? members.filter(m => 
+        m.name && m.name.toLowerCase().includes(filter.toLowerCase())
+      ) : members;
+      
+      const container = document.getElementById('members-list');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-3">No hay miembros registrados</p>';
+        return;
+      }
+      
+      container.innerHTML = filtered.map(m => `
+        <div class="card-hover bg-white rounded-2xl p-5 shadow-lg">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0" style="background: linear-gradient(135deg, #c4a574 0%, #8b6914 100%);">
+              ${(m.name || 'M')[0].toUpperCase()}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start">
+                <h4 class="font-display text-lg font-bold truncate" style="color: #1a1a2e;">${m.name || 'Sin nombre'}</h4>
+                <div class="flex gap-1 flex-shrink-0">
+                  <button onclick="editMember('${m.id}')" class="p-1 hover:bg-amber-50 rounded text-amber-600 text-sm">✏️</button>
+                  <button onclick="requestDelete('${m.id}', 'member')" class="p-1 hover:bg-red-50 rounded text-red-500 text-sm">🗑️</button>
+                </div>
+              </div>
+              <p class="text-sm text-gray-500 mt-1">📱 ${m.phone || 'Sin teléfono'}</p>
+              <p class="text-sm text-gray-500">🎂 ${m.birthday ? formatDateOnly(m.birthday) : 'Sin fecha'}</p>
+              ${m.notes ? `<p class="text-xs text-gray-400 mt-2 truncate">${m.notes}</p>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderPrayers() {
+      const prayers = allData.filter(d => d.type === 'prayer');
+      const container = document.getElementById('prayers-list');
+      
+      if (prayers.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">No hay oraciones guardadas</p>';
+        return;
+      }
+      
+      container.innerHTML = prayers.map(p => `
+        <div class="p-4 rounded-xl bg-amber-50 relative group">
+          <button onclick="requestDelete('${p.id}', 'prayer')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded text-red-500 text-sm">🗑️</button>
+          <p class="text-gray-700 text-sm pr-6">${p.content || ''}</p>
+          <p class="text-xs text-gray-400 mt-2">${formatDate(p.createdAt)}</p>
+        </div>
+      `).join('');
+    }
+    
+    // Funciones de navegación
+    function showSection(section) {
+      currentSection = section;
+      
+      document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
+      
+      const sectionEl = document.getElementById(`section-${section}`);
+      if (sectionEl) {
+        sectionEl.classList.remove('hidden');
+      }
+      
+      document.querySelectorAll('.sidebar-item').forEach(btn => {
+        const btnSection = btn.getAttribute('data-section');
+        if (btnSection === section) {
+          btn.style.background = 'linear-gradient(135deg, rgba(196,165,116,0.3) 0%, rgba(139,105,20,0.3) 100%)';
+        } else {
+          btn.style.background = '';
+        }
+      });
+      
+      const titles = {
+        dashboard: ['Panel de Control', 'Resumen general de actividades'],
+        sermons: ['Sermones y Notas Bíblicas', 'Gestiona tus predicaciones y reflexiones'],
+        calendar: ['Agenda de Reuniones', 'Organiza tus citas y eventos'],
+        members: ['Miembros de la Iglesia', 'Base de datos de la congregación'],
+        spiritual: ['Herramientas Espirituales', 'Recursos para tu vida devocional'],
+        documents: ['Documentos y Oficios', 'Plantillas y certificados'],
+        settings: ['Configuración de Firebase', 'Conecta tu base de datos']
+      };
+      
+      document.getElementById('section-title').textContent = titles[section]?.[0] || 'Panel';
+      document.getElementById('section-subtitle').textContent = titles[section]?.[1] || '';
+      
+      renderCurrentSection();
+    }
+    
+    // Funciones de formularios
+    function showSermonForm() {
+      editingId = null;
+      document.getElementById('sermon-form').classList.remove('hidden');
+      document.getElementById('sermon-title').value = '';
+      document.getElementById('sermon-verse').value = '';
+      document.getElementById('sermon-topic').value = '';
+      document.getElementById('sermon-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('sermon-content').value = '';
+    }
+    
+    function hideSermonForm() {
+      document.getElementById('sermon-form').classList.add('hidden');
+      editingId = null;
+    }
+    
+    function showEventForm() {
+      editingId = null;
+      document.getElementById('event-form').classList.remove('hidden');
+      document.getElementById('event-title').value = '';
+      document.getElementById('event-category').value = 'Consejería';
+      document.getElementById('event-date').value = '';
+      document.getElementById('event-time').value = '';
+      document.getElementById('event-notes').value = '';
+    }
+    
+    function hideEventForm() {
+      document.getElementById('event-form').classList.add('hidden');
+      editingId = null;
+    }
+    
+    function showMemberForm() {
+      editingId = null;
+      document.getElementById('member-form').classList.remove('hidden');
+      document.getElementById('member-name').value = '';
+      document.getElementById('member-phone').value = '';
+      document.getElementById('member-birthday').value = '';
+      document.getElementById('member-notes').value = '';
+    }
+    
+    function hideMemberForm() {
+      document.getElementById('member-form').classList.add('hidden');
+      editingId = null;
+    }
+    
+    // Funciones de guardado
+    async function saveSermon() {
+      if (!isFirebaseConnected) {
+        showToast('❌ Conecta Firebase primero');
+        showSection('settings');
+        return;
+      }
+      
+      const title = document.getElementById('sermon-title').value.trim();
+      const verse = document.getElementById('sermon-verse').value.trim();
+      const topic = document.getElementById('sermon-topic').value;
+      const date = document.getElementById('sermon-date').value;
+      const content = document.getElementById('sermon-content').value.trim();
+      
+      if (!title) {
+        showToast('Por favor ingresa un título');
+        return;
+      }
+      
+      const data = {
+        type: 'sermon',
+        title,
+        verse,
+        topic,
+        date,
+        content,
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        if (editingId) {
+          await db.ref(`culturaFe/${editingId}`).update(data);
+          showToast('Sermón actualizado');
+        } else {
+          await db.ref('culturaFe').push(data);
+          showToast('Sermón guardado');
+        }
+        hideSermonForm();
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al guardar');
+      }
+    }
+    
+    async function saveEvent() {
+      if (!isFirebaseConnected) {
+        showToast('❌ Conecta Firebase primero');
+        showSection('settings');
+        return;
+      }
+      
+      const title = document.getElementById('event-title').value.trim();
+      const category = document.getElementById('event-category').value;
+      const date = document.getElementById('event-date').value;
+      const time = document.getElementById('event-time').value;
+      const notes = document.getElementById('event-notes').value.trim();
+      
+      if (!title || !date) {
+        showToast('Por favor completa título y fecha');
+        return;
+      }
+      
+      const data = {
+        type: 'event',
+        title,
+        category,
+        date,
+        time,
+        notes,
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        if (editingId) {
+          await db.ref(`culturaFe/${editingId}`).update(data);
+          showToast('Evento actualizado');
+        } else {
+          await db.ref('culturaFe').push(data);
+          showToast('Evento guardado');
+        }
+        hideEventForm();
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al guardar');
+      }
+    }
+    
+    async function saveMember() {
+      if (!isFirebaseConnected) {
+        showToast('❌ Conecta Firebase primero');
+        showSection('settings');
+        return;
+      }
+      
+      const name = document.getElementById('member-name').value.trim();
+      const phone = document.getElementById('member-phone').value.trim();
+      const birthday = document.getElementById('member-birthday').value;
+      const notes = document.getElementById('member-notes').value.trim();
+      
+      if (!name) {
+        showToast('Por favor ingresa el nombre');
+        return;
+      }
+      
+      const data = {
+        type: 'member',
+        name,
+        phone,
+        birthday,
+        notes,
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        if (editingId) {
+          await db.ref(`culturaFe/${editingId}`).update(data);
+          showToast('Miembro actualizado');
+        } else {
+          await db.ref('culturaFe').push(data);
+          showToast('Miembro registrado');
+        }
+        hideMemberForm();
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al guardar');
+      }
+    }
+    
+    async function savePrayer() {
+      if (!isFirebaseConnected) {
+        showToast('❌ Conecta Firebase primero');
+        showSection('settings');
+        return;
+      }
+      
+      const content = document.getElementById('prayer-content').value.trim();
+      if (!content) {
+        showToast('Escribe tu oración o testimonio');
+        return;
+      }
+      
+      try {
+        await db.ref('culturaFe').push({
+          type: 'prayer',
+          content,
+          createdAt: new Date().toISOString()
+        });
+        document.getElementById('prayer-content').value = '';
+        showToast('Oración guardada');
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Error al guardar');
+      }
+    }
+    
+    // Funciones de edición
+    function editSermon(id) {
+      const sermon = allData.find(d => d.id === id);
+      if (!sermon) return;
+      
+      editingId = id;
+      document.getElementById('sermon-form').classList.remove('hidden');
+      document.getElementById('sermon-title').value = sermon.title || '';
+      document.getElementById('sermon-verse').value = sermon.verse || '';
+      document.getElementById('sermon-topic').value = sermon.topic || '';
+      document.getElementById('sermon-date').value = sermon.date || '';
+      document.getElementById('sermon-content').value = sermon.content || '';
+    }
+    
+    function editEvent(id) {
+      const event = allData.find(d => d.id === id);
+      if (!event) return;
+      
+      editingId = id;
+      document.getElementById('event-form').classList.remove('hidden');
+      document.getElementById('event-title').value = event.title || '';
+      document.getElementById('event-category').value = event.category || 'Consejería';
+      document.getElementById('event-date').value = event.date || '';
+      document.getElementById('event-time').value = event.time || '';
+      document.getElementById('event-notes').value = event.notes || '';
+    }
+    
+    function editMember(id) {
+      const member = allData.find(d => d.id === id);
+      if (!member) return;
+      
+      editingId = id;
+      document.getElementById('member-form').classList.remove('hidden');
+      document.getElementById('member-name').value = member.name || '';
+      document.getElementById('member-phone').value = member.phone || '';
+      document.getElementById('member-birthday').value = member.birthday || '';
+      document.getElementById('member-notes').value = member.notes || '';
+    }
+    
+    // Funciones de eliminación
+    function requestDelete(id, type) {
+      const item = allData.find(d => d.id === id);
+      if (!item) return;
+      
+      const typeNames = {
+        sermon: 'sermón',
+        event: 'evento',
+        member: 'miembro',
+        prayer: 'oración'
+      };
+      
+      document.getElementById('confirm-message').textContent = `¿Estás seguro de que deseas eliminar este ${typeNames[type] || 'elemento'}?`;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+      
+      deleteCallback = async () => {
+        if (!isFirebaseConnected) {
+          showToast('❌ No hay conexión a Firebase');
+          return;
+        }
+        
+        try {
+          await db.ref(`culturaFe/${id}`).remove();
+          showToast('Eliminado correctamente');
+        } catch (error) {
+          console.error('Error:', error);
+          showToast('❌ Error al eliminar');
+        }
+      };
+    }
+    
+    function confirmDelete() {
+      if (deleteCallback) {
+        deleteCallback();
+        deleteCallback = null;
+      }
+      document.getElementById('confirm-modal').classList.add('hidden');
+    }
+    
+    function cancelDelete() {
+      deleteCallback = null;
+      document.getElementById('confirm-modal').classList.add('hidden');
+    }
+    
+    // Funciones de filtrado
+    function filterSermons(query) {
+      renderSermons(query);
+    }
+    
+    function filterEvents(category) {
+      renderEvents(category);
+    }
+    
+    function filterMembers(query) {
+      renderMembers(query);
+    }
+    
+    // Funciones de documentos
+    function showDocumentTemplate(type) {
+      const templates = {
+        baptism: {
+          title: 'Certificado de Bautizo',
+          content: `
+            <div class="text-center border-4 border-amber-200 p-8 rounded-xl">
+              <div class="w-32 h-32 mx-auto mb-4 bg-white rounded-lg p-2">
+                <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+              </div>
+              <h2 class="font-display text-2xl font-bold mb-2" style="color: #8b6914;">CULTURA FE VENEZUELA</h2>
+              <h3 class="font-display text-xl mb-6">Certificado de Bautismo</h3>
+              <p class="mb-4">Certificamos que:</p>
+              <p class="text-xl font-bold mb-4 border-b-2 border-amber-300 pb-2 mx-16">_________________________</p>
+              <p class="mb-4">Fue bautizado(a) en agua el día:</p>
+              <p class="font-bold mb-6 border-b-2 border-amber-300 pb-2 mx-24">_______________</p>
+              <p class="italic text-gray-600 mb-6">"Por tanto, id, y haced discípulos a todas las naciones, bautizándolos en el nombre del Padre, y del Hijo, y del Espíritu Santo" - Mateo 28:19</p>
+              <div class="flex justify-around mt-8">
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Pastor Job Figuera</p>
+                  <p class="text-xs text-gray-500 mt-1">Pastora Fiorella de Figuera</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Fecha</p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        membership: {
+          title: 'Carta de Membresía',
+          content: `
+            <div class="border-4 border-amber-200 p-8 rounded-xl">
+              <div class="text-center mb-6">
+                <div class="w-28 h-28 mx-auto mb-3 bg-white rounded-lg p-2">
+                  <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+                </div>
+                <h2 class="font-display text-2xl font-bold" style="color: #8b6914;">CULTURA FE VENEZUELA</h2>
+                <p class="text-gray-600">Constancia de Membresía</p>
+              </div>
+              <p class="mb-4">Por medio de la presente hacemos constar que:</p>
+              <p class="text-xl font-bold mb-4 text-center border-b-2 border-amber-300 pb-2 mx-8">_________________________</p>
+              <p class="mb-4">Es miembro activo de nuestra congregación desde el día _____________, participando fielmente en las actividades y servicios de nuestra iglesia.</p>
+              <p class="mb-6">Se expide la presente constancia a solicitud del interesado(a) para los fines que estime conveniente.</p>
+              <p class="italic text-gray-600 mb-6 text-center">"Así que ya no sois extranjeros ni advenedizos, sino conciudadanos de los santos, y miembros de la familia de Dios" - Efesios 2:19</p>
+              <div class="flex justify-between mt-8">
+                <div>
+                  <p>Lugar y Fecha: _______________</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Pastor Job Figuera</p>
+                  <p class="text-xs text-gray-500 mt-1">Pastora Fiorella de Figuera</p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        invitation: {
+          title: 'Invitación a Evento Especial',
+          content: `
+            <div class="text-center border-4 border-amber-200 p-8 rounded-xl" style="background: linear-gradient(135deg, rgba(196,165,116,0.1) 0%, rgba(139,105,20,0.1) 100%);">
+              <div class="w-28 h-28 mx-auto mb-4 bg-white rounded-lg p-2">
+                <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+              </div>
+              <p class="text-amber-700 mb-2">Te invitamos cordialmente a</p>
+              <h2 class="font-display text-3xl font-bold mb-4" style="color: #1a1a2e;">[NOMBRE DEL EVENTO]</h2>
+              <div class="my-6 py-4 border-t border-b border-amber-300">
+                <p class="text-lg"><strong>📅 Fecha:</strong> _______________</p>
+                <p class="text-lg"><strong>🕐 Hora:</strong> _______________</p>
+                <p class="text-lg"><strong>📍 Lugar:</strong> _______________</p>
+              </div>
+              <p class="italic text-gray-600 mb-4">"Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar" - Mateo 11:28</p>
+              <div class="mt-6">
+                <h3 class="font-display text-xl font-bold" style="color: #8b6914;">CULTURA FE VENEZUELA</h3>
+                <p class="text-gray-600">¡Te esperamos!</p>
+              </div>
+            </div>
+          `
+        },
+        recommendation: {
+          title: 'Carta de Recomendación',
+          content: `
+            <div class="border-4 border-amber-200 p-8 rounded-xl">
+              <div class="text-center mb-6">
+                <div class="w-28 h-28 mx-auto mb-3 bg-white rounded-lg p-2">
+                  <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+                </div>
+                <h2 class="font-display text-2xl font-bold" style="color: #8b6914;">CULTURA FE VENEZUELA</h2>
+                <p class="text-gray-600">Carta de Recomendación Pastoral</p>
+              </div>
+              <p class="mb-4">A quien corresponda:</p>
+              <p class="mb-4">Por medio de la presente, recomendamos ampliamente a:</p>
+              <p class="text-xl font-bold mb-4 text-center border-b-2 border-amber-300 pb-2 mx-8">_________________________</p>
+              <p class="mb-4">Quien ha sido miembro fiel de nuestra congregación, demostrando una conducta cristiana ejemplar, participación activa en los ministerios de la iglesia y un testimonio de vida acorde a los principios bíblicos.</p>
+              <p class="mb-6">Le deseamos bendiciones en su nueva etapa y oramos para que continúe creciendo en la fe.</p>
+              <p class="italic text-gray-600 mb-6 text-center">"Y el mismo Dios de paz os santifique por completo" - 1 Tesalonicenses 5:23</p>
+              <div class="flex justify-between mt-8">
+                <div>
+                  <p>Fecha: _______________</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Pastor Job Figuera</p>
+                  <p class="text-xs text-gray-500 mt-1">Pastora Fiorella de Figuera</p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        wedding: {
+          title: 'Acta de Matrimonio Eclesiástico',
+          content: `
+            <div class="border-4 border-amber-200 p-8 rounded-xl">
+              <div class="text-center mb-6">
+                <div class="w-28 h-28 mx-auto mb-3 bg-white rounded-lg p-2">
+                  <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+                </div>
+                <h2 class="font-display text-2xl font-bold" style="color: #8b6914;">CULTURA FE VENEZUELA</h2>
+                <h3 class="font-display text-xl">Acta de Matrimonio Eclesiástico</h3>
+              </div>
+              <p class="mb-4">En la ciudad de _____________, siendo las _____ del día _____ de _____________ del año _____,</p>
+              <p class="mb-4">Ante el pastor que suscribe, comparecieron:</p>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="text-center">
+                  <p class="border-b-2 border-amber-300 pb-2 mb-1">_____________________</p>
+                  <p class="text-sm text-gray-600">Contrayente</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-b-2 border-amber-300 pb-2 mb-1">_____________________</p>
+                  <p class="text-sm text-gray-600">Contrayente</p>
+                </div>
+              </div>
+              <p class="mb-4">Quienes contrajeron matrimonio eclesiástico conforme a las Sagradas Escrituras.</p>
+              <p class="italic text-gray-600 mb-6 text-center">"Lo que Dios juntó, no lo separe el hombre" - Marcos 10:9</p>
+              <div class="flex justify-around mt-8">
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Pastor Job Figuera</p>
+                  <p class="text-xs text-gray-500 mt-1">Pastora Fiorella de Figuera</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Testigo</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Testigo</p>
+                </div>
+              </div>
+            </div>
+          `
+        },
+        dedication: {
+          title: 'Certificado de Presentación de Niños',
+          content: `
+            <div class="text-center border-4 border-amber-200 p-8 rounded-xl">
+              <div class="w-32 h-32 mx-auto mb-4 bg-white rounded-lg p-2">
+                <img src="https://i.imgur.com/qVtDYVu.png" alt="Logo Cultura Fe Venezuela" class="w-full h-full object-contain" loading="lazy" onerror="this.style.display='none';">
+              </div>
+              <h2 class="font-display text-2xl font-bold mb-2" style="color: #8b6914;">CULTURA FE VENEZUELA</h2>
+              <h3 class="font-display text-xl mb-6">Certificado de Presentación y Dedicación</h3>
+              <p class="mb-4">Certificamos que el/la niño(a):</p>
+              <p class="text-xl font-bold mb-4 border-b-2 border-amber-300 pb-2 mx-16">_________________________</p>
+              <p class="mb-2">Nacido(a) el: _______________</p>
+              <p class="mb-4">Hijo(a) de: _________________________ y _________________________</p>
+              <p class="mb-4">Fue presentado(a) y dedicado(a) al Señor en este día:</p>
+              <p class="font-bold mb-6 border-b-2 border-amber-300 pb-2 mx-24">_______________</p>
+              <p class="italic text-gray-600 mb-6">"Pero Jesús dijo: Dejad a los niños venir a mí, y no se lo impidáis; porque de los tales es el reino de los cielos" - Mateo 19:14</p>
+              <div class="flex justify-around mt-8">
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Pastor Job Figuera</p>
+                  <p class="text-xs text-gray-500 mt-1">Pastora Fiorella de Figuera</p>
+                </div>
+                <div class="text-center">
+                  <p class="border-t-2 border-gray-400 pt-2 px-8">Padres</p>
+                </div>
+              </div>
+            </div>
+          `
+        }
+      };
+      
+      const template = templates[type];
+      if (!template) return;
+      
+      document.getElementById('doc-title').textContent = template.title;
+      document.getElementById('doc-content').innerHTML = template.content;
+      document.getElementById('document-preview').classList.remove('hidden');
+    }
+    
+    function hideDocumentPreview() {
+      document.getElementById('document-preview').classList.add('hidden');
+    }
+    
+    function printDocument() {
+      const content = document.getElementById('doc-content').innerHTML;
+      const title = document.getElementById('doc-title').textContent;
+      
+      const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${title}</title>
+          <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+          <style>
+            body {
+              font-family: 'Source Sans Pro', sans-serif;
+              margin: 0;
+              padding: 40px;
+            }
+            .font-display {
+              font-family: 'Playfair Display', serif;
+            }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          ${content}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    }
+    
+    // Utilidades
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    
+    function formatDateOnly(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      
+      const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+      const day = parseInt(parts[2]);
+      const month = months[parseInt(parts[1]) - 1];
+      
+      return `${day} ${month}`;
+    }
+    
+    function getCategoryEmoji(category) {
+      const emojis = {
+        'Consejería': '💬',
+        'Reunión': '👥',
+        'Visita': '🏠',
+        'Culto': '⛪',
+        'Otro': '📌'
+      };
+      return emojis[category] || '📅';
+    }
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+    
+    function getDailyVerse() {
+      const verses = [
+        { text: '"Porque yo sé los pensamientos que tengo acerca de vosotros, dice Jehová, pensamientos de paz, y no de mal, para daros el fin que esperáis."', ref: 'Jeremías 29:11' },
+        { text: '"Todo lo puedo en Cristo que me fortalece."', ref: 'Filipenses 4:13' },
+        { text: '"Confía en Jehová con todo tu corazón, y no te apoyes en tu propia prudencia."', ref: 'Proverbios 3:5' },
+        { text: '"Esfuérzate y sé valiente; no temas ni desmayes, porque Jehová tu Dios estará contigo en dondequiera que vayas."', ref: 'Josué 1:9' },
+        { text: '"Y sabemos que a los que aman a Dios, todas las cosas les ayudan a bien."', ref: 'Romanos 8:28' },
+        { text: '"Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna."', ref: 'Juan 3:16' },
+        { text: '"Jehová es mi pastor; nada me faltará."', ref: 'Salmos 23:1' }
+      ];
+      
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      
+      return verses[dayOfWeek];
+    }
+    
+    // Element SDK
+    async function onConfigChange(cfg) {
+      config = cfg;
+      
+      const churchName = cfg.church_name || defaultConfig.church_name;
+      const welcomeMessage = cfg.welcome_message || defaultConfig.welcome_message;
+      
+      document.getElementById('church-name-display').textContent = churchName;
+      document.getElementById('welcome-display').textContent = `"${welcomeMessage}"`;
+      
+      const dailyVerse = getDailyVerse();
+      document.getElementById('daily-verse-text').textContent = dailyVerse.text;
+      document.getElementById('daily-verse-reference').textContent = `— ${dailyVerse.ref}`;
+    }
+    
+    function mapToCapabilities(cfg) {
+      return {
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+    
+    function mapToEditPanelValues(cfg) {
+      return new Map([
+        ['church_name', cfg.church_name || defaultConfig.church_name],
+        ['welcome_message', cfg.welcome_message || defaultConfig.welcome_message],
+        ['firebase_url', cfg.firebase_url || defaultConfig.firebase_url]
+      ]);
+    }
+    
+    // Inicialización
+    async function init() {
+      if (window.elementSdk) {
+        await window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+      
+      // Cargar configuración Firebase guardada
+      const savedConfig = localStorage.getItem('firebaseConfig');
+      if (savedConfig) {
+        try {
+          const config = JSON.parse(savedConfig);
+          document.getElementById('firebase-api-key').value = config.apiKey || '';
+          document.getElementById('firebase-auth-domain').value = config.authDomain || '';
+          document.getElementById('firebase-database-url').value = config.databaseURL || '';
+          document.getElementById('firebase-project-id').value = config.projectId || '';
+          document.getElementById('firebase-storage-bucket').value = config.storageBucket || '';
+          document.getElementById('firebase-messaging-sender').value = config.messagingSenderId || '';
+          document.getElementById('firebase-app-id').value = config.appId || '';
+        } catch (e) {
+          console.error('Error cargando config:', e);
+        }
+      }
+      
+      initFirebase();
+      showSection('dashboard');
+    }
+    
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bf7052e239e1e02',t:'MTc2ODY2NTE1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
